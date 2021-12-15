@@ -4,7 +4,7 @@ playbook documentation
 installs and configures docker on target host with CentOS 7.  
 installs and configures NRPE with *check_docker* that checks what containers running.  
 containers to be checked should be defined as host_vars.  
-It will configure the target host to use docker and reserves a separate partition for the pod/container data
+It will configure the target host to use docker and reserves a separate partition for the container data
 
 Info
 ----
@@ -19,6 +19,7 @@ It also installs *git* and *mgitstatus*
 Requirements
 ------------
 
+deploy host has *ansible* and *ansible-galaxy* installed.  
 Target host has CentOS 7 installed.  
 Requires root access to target host.   
 Requires an extra disk */dev/sdb* of at least 40 GB in size for future pod/container data.  
