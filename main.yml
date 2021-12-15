@@ -7,7 +7,7 @@
     tz: Europe/Amsterdam
   roles:
     - role: arikkert.nrpe
-    - role: arikkert.role_nrpe_check_docker
+    - role: arikkert.nrpe_check_docker
     - role: arikkert.nrpe
 
   pre_tasks:
