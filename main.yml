@@ -1,0 +1,211 @@
+#
+#
+---
+- hosts: docker01.thuis docker02.thuis
+  vars:
+    repo: docker-ce
+    tz: Europe/Amsterdam
+  roles:
+    - role: arikkert.nrpe
+    - role: role_nrpe_check_docker
+    - role: arikkert.nrpe
+
+  pre_tasks:
+
+    - name: Check target OS
+      fail:
+        msg: "Playbook alleen geschikt voor CentOS 7"
+      when: ansible_distribution != 'CentOS' or ansible_distribution_major_version != '7'
+
+    #
+    # docker itself
+    #
+
+    - name: ensure docker-ce repo is installed
+      shell: yum-config-manager --add-repo=https://download.docker.com/linux/centos/{{ repo }}.repo
+      args:
+        creates: /etc/yum.repos.d/{{ repo }}.repo
+
+    - name: ensure {{ repo }} is installed
+      yum:
+        name: "{{ repo }}"
+
+    - name: ensure version is detected
+      shell: docker --version
+      register: docker_version
+      changed_when: false
+      check_mode: false
+
+    - name: ff output
+      debug:
+        msg: "{{ docker_version.stdout.split('\n') }}"
+
+    - name: ensure docker is running and enabled
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: ensure user docker is installed
+      user:
+        name: docker
+        groups: docker
+        append: true
+
+    #
+    # docker-compose
+    #
+
+    # niet de ouwe system docker-compose uit redhat repo
+    - name: compose deps
+      yum:
+        name: docker-compose
+        state: absent
+
+    - name: compose deps
+      yum:
+        name:
+          - python2
+          - python36
+
+    # https://docs.docker.com/compose/install/#alternative-install-options
+    - name: ensure up2date downloaded version docker-compose is present
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.29.1/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+        dest: /usr/local/bin/docker-compose
+        mode: 0755
+
+    - name: ensure docker-compose version is detected
+      shell: /usr/local/bin/docker-compose --version
+      register: dockercompose_version
+      changed_when: false
+      check_mode: false
+
+    - name: ensure docker-compose versoin is shown
+      debug:
+        msg: "{{ dockercompose_version.stdout.split('\n') }}"
+
+    #
+    # weer door
+    #
+
+    - name: ensure .ssh dir exists
+      file:
+        path: /home/docker/.ssh
+        state: directory
+        mode: 0700
+        owner: docker
+        group: docker
+
+    - name: maak pair
+      become: true
+      become_user: docker
+      openssh_keypair:
+        path: "~/.ssh/id_rsa"
+        owner: docker
+        group: docker
+
+    - name: ensure dirs exist
+      become: true
+      become_user: docker
+      file:
+        path: /home/docker/{{ item }}
+        state: directory
+        mode: 0755
+      loop:
+        - docker
+        - docker_compose
+
+    - name: ensure user docker can have elevated privileges
+      copy:
+        src: "{{ item }}"
+        dest: /etc/sudoers.d/
+        mode: '0440'
+        validate: visudo -cf %s
+      loop:
+        - 10_docker
+
+    - name: maak VG
+      lvg:
+        pvs: /dev/sdb
+        vg: vg01
+
+    - name: data volume
+      lvol:
+        vg: vg01
+        lv: data
+        size: 40G
+        pvs: /dev/sdb
+
+    - name: ensure FS
+      filesystem:
+        fstype: xfs
+        dev: /dev/mapper/vg01-data
+
+    - name: maak mp
+      file:
+        path: /container-data
+        state: directory
+        mode: 0755
+
+    - name: mount
+      mount:
+        path: /container-data
+        src: /dev/mapper/vg01-data
+        fstype: xfs
+        state: mounted
+
+    #
+    # git
+    #
+
+    - name: ensure git is installed
+      yum:
+        name: git
+
+    - name: TZ {{ tz }}
+      timezone:
+        name: "{{ tz }}"
+
+    #
+    # helpers
+    #
+
+    - name: ensure yamllint is installed
+      yum:
+        name: "{{ item }}"
+      loop:
+        - yamllint
+
+    - name: ensure hadolint is installed
+      yum:
+        name: "{{ item }}"
+      loop:
+        - https://harbottle.gitlab.io/harbottle-main/7/x86_64/harbottle-main-release.rpm
+        - hadolint
+
+    - name: ensure version is detected
+      shell: hadolint --version
+      register: hadolint_version
+      changed_when: false
+      check_mode: false
+
+    - name: ensure hadolint version is shown
+      debug:
+        msg: "{{ hadolint_version.stdout.split('\n') }}"
+
+    # sources op git clone https://github.com/fboender/multi-git-status.git
+    # daarna patchen voor rhel7 ouwe git en locks
+    - name: ensure mgitstatus is installed
+      copy:
+        src: mgitstatus
+        dest: /usr/local/bin/
+        mode: 0755
+
+    - name: ensure mgitstatus manpage is installed
+      copy:
+        src: mgitstatus.1.gz
+        dest: /usr/share/man/man1/
+        mode: 0644
+
+...

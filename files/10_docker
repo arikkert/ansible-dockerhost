@@ -1,0 +1,2 @@
+# File managed by Ansible
+docker ALL=(ALL) NOPASSWD: ALL
