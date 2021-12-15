@@ -1,21 +1,30 @@
 #
 #
 ---
-- hosts: docker01.thuis docker02.thuis
+- hosts: docker
   vars:
-    repo: docker-ce
+    centos_version: "7"
     tz: Europe/Amsterdam
+    pv: sdb
+    vg: vg01
+    lv: data
+    mp: "/container-data"  # MountPoint
+    repo: docker-ce
   roles:
     - role: arikkert.nrpe
+      when: containers is defined
     - role: arikkert.nrpe_check_docker
+      when: containers is defined
     - role: arikkert.nrpe
 
+  # First (pre) configure the hosts
+  # After that use roles to add special features
   pre_tasks:
 
-    - name: Check target OS
+    - name: Ensure target OS is supported
       fail:
-        msg: "Playbook alleen geschikt voor CentOS 7"
-      when: ansible_distribution != 'CentOS' or ansible_distribution_major_version != '7'
+        msg: "Playbook suitable/tested for CentOS {{ centos_version }}"
+      when: ansible_distribution != 'CentOS' or ansible_distribution_major_version != centos_version
 
     #
     # docker itself
@@ -56,7 +65,7 @@
     # docker-compose
     #
 
-    # niet de ouwe system docker-compose uit redhat repo
+    # not the old system docker-compose from redhat repo
     - name: compose deps
       yum:
         name: docker-compose
@@ -86,7 +95,7 @@
         msg: "{{ dockercompose_version.stdout.split('\n') }}"
 
     #
-    # weer door
+    # continue
     #
 
     - name: ensure .ssh dir exists
@@ -116,6 +125,10 @@
         - docker
         - docker_compose
 
+    - name: ensure sudo is installed
+      package:
+        name: sudo
+
     - name: ensure user docker can have elevated privileges
       copy:
         src: "{{ item }}"
@@ -125,33 +138,33 @@
       loop:
         - 10_docker
 
-    - name: maak VG
+    - name: ensure VG exists
       lvg:
-        pvs: /dev/sdb
-        vg: vg01
+        pvs: /dev/{{ pv }}
+        vg: "{{ vg }}"
 
-    - name: data volume
+    - name: ensure LV exists
       lvol:
-        vg: vg01
-        lv: data
+        vg: "{{ vg }}"
+        lv: "{{ lv }}"
         size: 40G
-        pvs: /dev/sdb
+        pvs: /dev/{{ pv }}
 
-    - name: ensure FS
+    - name: ensure FS exists
       filesystem:
         fstype: xfs
-        dev: /dev/mapper/vg01-data
+        dev: /dev/mapper/{{ vg }}-{{ lv }}
 
-    - name: maak mp
+    - name: ensure MP (mountpoint) exists
       file:
-        path: /container-data
+        path: "{{ mp }}"
         state: directory
         mode: 0755
 
     - name: mount
       mount:
-        path: /container-data
-        src: /dev/mapper/vg01-data
+        path: "{{ mp }}"
+        src: /dev/mapper/{{ vg }}-{{ lv }}
         fstype: xfs
         state: mounted
 
