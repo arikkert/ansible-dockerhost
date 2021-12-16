@@ -40,7 +40,7 @@ Dependencies
 ------------
 
 * role_nrpe_check_docker
-** role_nrpe (installed by role_nrpe_check_docker)
+  * role_nrpe (installed by role_nrpe_check_docker)
 * role_postfix_nullclient
 
 License
