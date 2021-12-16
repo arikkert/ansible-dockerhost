@@ -28,8 +28,8 @@ Variables
 --------------
 
 Vars that can be set in inventory  
-* *email_root*: the email of the root account, defaults to root  
-* *nagios*: the host running nagios, defaults to nagios  
+* *email_root*: the email of the root account, defaults to *root*  
+* *nagios*: the host running nagios, defaults to *nagios*  
 
 hostvars  
 * *containers*: optional list of containers that should be running on target host  
