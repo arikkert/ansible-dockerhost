@@ -11,11 +11,9 @@
     mp: "/container-data"  # MountPoint
     repo: docker-ce
   roles:
-    - role: arikkert.nrpe
-      when: containers is defined
     - role: arikkert.nrpe_check_docker
       when: containers is defined
-    - role: arikkert.nrpe
+    - role: arikkert.postfix_nullclient
 
   # First (pre) configure the hosts
   # After that use roles to add special features
