@@ -78,7 +78,7 @@
     # https://docs.docker.com/compose/install/#alternative-install-options
     - name: ensure up2date downloaded version docker-compose is present
       get_url:
-        url: https://github.com/docker/compose/releases/download/1.29.1/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+        url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
         dest: /usr/local/bin/docker-compose
         mode: 0755
 
