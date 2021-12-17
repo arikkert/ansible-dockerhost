@@ -4,7 +4,7 @@ playbook documentation
 installs and configures docker on target host with CentOS 7.  
 installs and configures NRPE with *check_docker* that checks what containers running.  
 containers to be checked should be defined as host_vars.  
-It will configure the target host to use docker and reserves a separate partition for the container data
+It will configure the target host as docker host (controlling containers) and reserves a separate partition for the container data
 
 Info
 ----
