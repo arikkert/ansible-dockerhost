@@ -19,7 +19,7 @@ It also installs *git* and *mgitstatus*
 Requirements
 ------------
 
-deploy host has *ansible* and *ansible-galaxy* installed.  
+Deploy host has *make*, *ansible* and *ansible-galaxy* installed.  
 Target host has CentOS 7 installed.  
 Requires root access to target host.   
 Target host has an extra disk */dev/sdb* of at least 40 GB in size for future container data.  
