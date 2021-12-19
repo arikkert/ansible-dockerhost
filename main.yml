@@ -37,13 +37,13 @@
       yum:
         name: "{{ repo }}"
 
-    - name: ensure version is detected
+    - name: ensure docker version is detected
       shell: docker --version
       register: docker_version
       changed_when: false
       check_mode: false
 
-    - name: ff output
+    - name: ensure docker version is shown
       debug:
         msg: "{{ docker_version.stdout.split('\n') }}"
 
