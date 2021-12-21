@@ -40,9 +40,9 @@ Dependencies
 ------------
 
 Galaxy roles:
-* arikkert.nrpe_check_docker
-  * arikkert.nrpe (installed by arikkert.nrpe_check_docker)
-* arikkert.postfix_nullclient
+* *arikkert.nrpe_check_docker*
+  * *arikkert.nrpe* (installed by *arikkert.nrpe_check_docker*)
+* *arikkert.postfix_nullclient*
 
 License
 -------
