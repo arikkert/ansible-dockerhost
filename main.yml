@@ -20,7 +20,7 @@
   pre_tasks:
 
     - name: Ensure target OS is supported
-      fail:
+      ansible.builtin.fail:
         msg: "Playbook suitable/tested for CentOS {{ centos_version }}"
       when: ansible_distribution != 'CentOS' or ansible_distribution_major_version != centos_version
 
@@ -29,32 +29,32 @@
     #
 
     - name: ensure docker-ce repo is installed
-      shell: yum-config-manager --add-repo=https://download.docker.com/linux/centos/{{ repo }}.repo
+      ansible.builtin.shell: yum-config-manager --add-repo=https://download.docker.com/linux/centos/{{ repo }}.repo
       args:
         creates: /etc/yum.repos.d/{{ repo }}.repo
 
     - name: ensure {{ repo }} is installed
-      yum:
+      ansible.builtin.yum:
         name: "{{ repo }}"
 
     - name: ensure docker version is detected
-      shell: docker --version
+      ansible.builtin.shell: docker --version
       register: docker_version
       changed_when: false
       check_mode: false
 
     - name: ensure docker version is shown
-      debug:
+      ansible.builtin.debug:
         msg: "{{ docker_version.stdout.split('\n') }}"
 
     - name: ensure docker is running and enabled
-      systemd:
+      ansible.builtin.systemd:
         name: docker
         state: started
         enabled: true
 
     - name: ensure user docker is installed
-      user:
+      ansible.builtin.user:
         name: docker
         groups: docker
         append: true
@@ -65,31 +65,31 @@
 
     # not the old system docker-compose from redhat repo
     - name: compose deps
-      yum:
+      ansible.builtin.yum:
         name: docker-compose
         state: absent
 
     - name: compose deps
-      yum:
+      ansible.builtin.yum:
         name:
           - python2
           - python36
 
     # https://docs.docker.com/compose/install/#alternative-install-options
     - name: ensure up2date downloaded version docker-compose is present
-      get_url:
+      ansible.builtin.get_url:
         url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
         dest: /usr/local/bin/docker-compose
         mode: 0755
 
     - name: ensure docker-compose version is detected
-      shell: /usr/local/bin/docker-compose --version
+      ansible.builtin.shell: /usr/local/bin/docker-compose --version
       register: dockercompose_version
       changed_when: false
       check_mode: false
 
     - name: ensure docker-compose versoin is shown
-      debug:
+      ansible.builtin.debug:
         msg: "{{ dockercompose_version.stdout.split('\n') }}"
 
     #
@@ -97,7 +97,7 @@
     #
 
     - name: ensure .ssh dir exists
-      file:
+      ansible.builtin.file:
         path: /home/docker/.ssh
         state: directory
         mode: 0700
@@ -115,7 +115,7 @@
     - name: ensure dirs exist
       become: true
       become_user: docker
-      file:
+      ansible.builtin.file:
         path: /home/docker/{{ item }}
         state: directory
         mode: 0755
@@ -124,11 +124,11 @@
         - docker_compose
 
     - name: ensure sudo is installed
-      package:
+      ansible.builtin.package:
         name: sudo
 
     - name: ensure user docker can have elevated privileges
-      copy:
+      ansible.builtin.copy:
         src: "{{ item }}"
         dest: /etc/sudoers.d/
         mode: '0440'
@@ -137,30 +137,30 @@
         - 10_docker
 
     - name: ensure VG exists
-      lvg:
+      ansible.builtin.lvg:
         pvs: /dev/{{ pv }}
         vg: "{{ vg }}"
 
     - name: ensure LV exists
-      lvol:
+      ansible.builtin.lvol:
         vg: "{{ vg }}"
         lv: "{{ lv }}"
         size: 40G
         pvs: /dev/{{ pv }}
 
     - name: ensure FS exists
-      filesystem:
+      ansible.builtin.filesystem:
         fstype: xfs
         dev: /dev/mapper/{{ vg }}-{{ lv }}
 
     - name: ensure MP (mountpoint) exists
-      file:
+      ansible.builtin.file:
         path: "{{ mp }}"
         state: directory
         mode: 0755
 
     - name: mount
-      mount:
+      ansible.builtin.mount:
         path: "{{ mp }}"
         src: /dev/mapper/{{ vg }}-{{ lv }}
         fstype: xfs
@@ -171,11 +171,11 @@
     #
 
     - name: ensure git is installed
-      yum:
+      ansible.builtin.yum:
         name: git
 
     - name: TZ {{ tz }}
-      timezone:
+      ansible.builtin.timezone:
         name: "{{ tz }}"
 
     #
@@ -183,38 +183,38 @@
     #
 
     - name: ensure yamllint is installed
-      yum:
+      ansible.builtin.yum:
         name: "{{ item }}"
       loop:
         - yamllint
 
     - name: ensure hadolint is installed
-      yum:
+      ansible.builtin.yum:
         name: "{{ item }}"
       loop:
         - https://harbottle.gitlab.io/harbottle-main/7/x86_64/harbottle-main-release.rpm
         - hadolint
 
     - name: ensure version is detected
-      shell: hadolint --version
+      ansible.builtin.shell: hadolint --version
       register: hadolint_version
       changed_when: false
       check_mode: false
 
     - name: ensure hadolint version is shown
-      debug:
+      ansible.builtin.debug:
         msg: "{{ hadolint_version.stdout.split('\n') }}"
 
     # sources op git clone https://github.com/fboender/multi-git-status.git
     # daarna patchen voor rhel7 ouwe git en locks
     - name: ensure mgitstatus is installed
-      copy:
+      ansible.builtin.copy:
         src: mgitstatus
         dest: /usr/local/bin/
         mode: 0755
 
     - name: ensure mgitstatus manpage is installed
-      copy:
+      ansible.builtin.copy:
         src: mgitstatus.1.gz
         dest: /usr/share/man/man1/
         mode: 0644
