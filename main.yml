@@ -107,7 +107,7 @@
     - name: maak pair
       become: true
       become_user: docker
-      openssh_keypair:
+      community.crypto.openssh_keypair:
         path: "~/.ssh/id_rsa"
         owner: docker
         group: docker
