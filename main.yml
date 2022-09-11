@@ -1,7 +1,8 @@
 #
 #
 ---
-- hosts: docker
+- name: Provision dockerhosts, servers that host docker containers
+  hosts: docker
   vars:
     centos_version: "7"
     tz: Europe/Amsterdam
@@ -28,32 +29,32 @@
     # docker itself
     #
 
-    - name: ensure docker-ce repo is installed
+    - name: Ensure docker-ce repo is installed
       ansible.builtin.shell: yum-config-manager --add-repo=https://download.docker.com/linux/centos/{{ repo }}.repo
       args:
         creates: /etc/yum.repos.d/{{ repo }}.repo
 
-    - name: ensure {{ repo }} is installed
+    - name: Ensure {{ repo }} is installed
       ansible.builtin.yum:
         name: "{{ repo }}"
 
-    - name: ensure docker version is detected
+    - name: Ensure docker version is detected
       ansible.builtin.shell: docker --version
       register: docker_version
       changed_when: false
       check_mode: false
 
-    - name: ensure docker version is shown
+    - name: Ensure docker version is shown
       ansible.builtin.debug:
         msg: "{{ docker_version.stdout.split('\n') }}"
 
-    - name: ensure docker is running and enabled
+    - name: Ensure docker is running and enabled
       ansible.builtin.systemd:
         name: docker
         state: started
         enabled: true
 
-    - name: ensure user docker is installed
+    - name: Ensure user docker is installed
       ansible.builtin.user:
         name: docker
         groups: docker
@@ -64,32 +65,32 @@
     #
 
     # not the old system docker-compose from redhat repo
-    - name: compose deps
+    - name: Compose deps
       ansible.builtin.yum:
         name: docker-compose
         state: absent
 
-    - name: compose deps
+    - name: Compose deps
       ansible.builtin.yum:
         name:
           - python2
           - python36
 
     # https://docs.docker.com/compose/install/#alternative-install-options
-    - name: ensure up2date downloaded version docker-compose is present
+    - name: Ensure up2date downloaded version docker-compose is present
       ansible.builtin.get_url:
         url: https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
         dest: /usr/local/bin/docker-compose
         backup: true
         mode: 0755
 
-    - name: ensure docker-compose version is detected
+    - name: Ensure docker-compose version is detected
       ansible.builtin.shell: /usr/local/bin/docker-compose --version
       register: dockercompose_version
       changed_when: false
       check_mode: false
 
-    - name: ensure docker-compose versoin is shown
+    - name: Ensure docker-compose versoin is shown
       ansible.builtin.debug:
         msg: "{{ dockercompose_version.stdout.split('\n') }}"
 
@@ -97,7 +98,7 @@
     # continue
     #
 
-    - name: ensure .ssh dir exists
+    - name: Ensure .ssh dir exists
       ansible.builtin.file:
         path: /home/docker/.ssh
         state: directory
@@ -105,7 +106,7 @@
         owner: docker
         group: docker
 
-    - name: maak pair
+    - name: Ensure key pair is created
       become: true
       become_user: docker
       community.crypto.openssh_keypair:
@@ -113,7 +114,7 @@
         owner: docker
         group: docker
 
-    - name: ensure dirs exist
+    - name: Ensure dirs exist
       become: true
       become_user: docker
       ansible.builtin.file:
@@ -124,11 +125,11 @@
         - docker
         - docker_compose
 
-    - name: ensure sudo is installed
+    - name: Ensure sudo is installed
       ansible.builtin.package:
         name: sudo
 
-    - name: ensure user docker can have elevated privileges
+    - name: Ensure user docker can have elevated privileges
       ansible.builtin.copy:
         src: "{{ item }}"
         dest: /etc/sudoers.d/
@@ -137,30 +138,30 @@
       loop:
         - 10_docker
 
-    - name: ensure VG exists
+    - name: Ensure VG exists
       ansible.builtin.lvg:
         pvs: /dev/{{ pv }}
         vg: "{{ vg }}"
 
-    - name: ensure LV exists
+    - name: Ensure LV exists
       ansible.builtin.lvol:
         vg: "{{ vg }}"
         lv: "{{ lv }}"
         size: 40G
         pvs: /dev/{{ pv }}
 
-    - name: ensure FS exists
+    - name: Ensure FS exists
       ansible.builtin.filesystem:
         fstype: xfs
         dev: /dev/mapper/{{ vg }}-{{ lv }}
 
-    - name: ensure MP (mountpoint) exists
+    - name: Ensure MP (mountpoint) exists
       ansible.builtin.file:
         path: "{{ mp }}"
         state: directory
         mode: 0755
 
-    - name: mount
+    - name: Mount
       ansible.builtin.mount:
         path: "{{ mp }}"
         src: /dev/mapper/{{ vg }}-{{ lv }}
@@ -171,7 +172,7 @@
     # git
     #
 
-    - name: ensure git is installed
+    - name: Ensure git is installed
       ansible.builtin.yum:
         name: git
 
@@ -183,38 +184,38 @@
     # helpers
     #
 
-    - name: ensure yamllint is installed
+    - name: Ensure yamllint is installed
       ansible.builtin.yum:
         name: "{{ item }}"
       loop:
         - yamllint
 
-    - name: ensure hadolint is installed
+    - name: Ensure hadolint is installed
       ansible.builtin.yum:
         name: "{{ item }}"
       loop:
         - https://harbottle.gitlab.io/harbottle-main/7/x86_64/harbottle-main-release.rpm
         - hadolint
 
-    - name: ensure version is detected
+    - name: Ensure version is detected
       ansible.builtin.shell: hadolint --version
       register: hadolint_version
       changed_when: false
       check_mode: false
 
-    - name: ensure hadolint version is shown
+    - name: Ensure hadolint version is shown
       ansible.builtin.debug:
         msg: "{{ hadolint_version.stdout.split('\n') }}"
 
     # sources op git clone https://github.com/fboender/multi-git-status.git
     # daarna patchen voor rhel7 ouwe git en locks
-    - name: ensure mgitstatus is installed
+    - name: Ensure mgitstatus is installed
       ansible.builtin.copy:
         src: mgitstatus
         dest: /usr/local/bin/
         mode: 0755
 
-    - name: ensure mgitstatus manpage is installed
+    - name: Ensure mgitstatus manpage is installed
       ansible.builtin.copy:
         src: mgitstatus.1.gz
         dest: /usr/share/man/man1/
