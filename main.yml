@@ -34,7 +34,7 @@
       args:
         creates: /etc/yum.repos.d/{{ repo }}.repo
 
-    - name: Ensure {{ repo }} is installed
+    - name: Ensure this repo is installed {{ repo }}
       ansible.builtin.yum:
         name: "{{ repo }}"
 
