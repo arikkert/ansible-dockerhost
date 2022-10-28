@@ -139,19 +139,19 @@
         - 10_docker
 
     - name: Ensure VG exists
-      ansible.builtin.lvg:
+      community.general.system.lvg:
         pvs: /dev/{{ pv }}
         vg: "{{ vg }}"
 
     - name: Ensure LV exists
-      ansible.builtin.lvol:
+      community.general.system.lvol:
         vg: "{{ vg }}"
         lv: "{{ lv }}"
         size: 40G
         pvs: /dev/{{ pv }}
 
     - name: Ensure FS exists
-      ansible.builtin.filesystem:
+      community.general.system.filesystem:
         fstype: xfs
         dev: /dev/mapper/{{ vg }}-{{ lv }}
 
@@ -162,7 +162,7 @@
         mode: 0755
 
     - name: Mount
-      ansible.builtin.mount:
+      ansible.posix.mount:
         path: "{{ mp }}"
         src: /dev/mapper/{{ vg }}-{{ lv }}
         fstype: xfs
@@ -177,7 +177,7 @@
         name: git
 
     - name: TZ {{ tz }}
-      ansible.builtin.timezone:
+      community.general.system.timezone:
         name: "{{ tz }}"
 
     #
