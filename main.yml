@@ -64,35 +64,39 @@
     # docker-compose
     #
 
-    # not the old system docker-compose from redhat repo
-    - name: Compose deps
-      ansible.builtin.yum:
-        name: docker-compose
-        state: absent
+    - name: Docker-compose
+      tags: docker-compose
+      block:
 
-    - name: Compose deps
-      ansible.builtin.yum:
-        name:
-          - python2
-          - python36
+      # not the old system docker-compose from redhat repo
+        - name: Compose deps
+          ansible.builtin.yum:
+            name: docker-compose
+            state: absent
 
-    # https://docs.docker.com/compose/install/#alternative-install-options
-    - name: Ensure up2date downloaded version docker-compose is present
-      ansible.builtin.get_url:
-        url: https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
-        dest: /usr/local/bin/docker-compose
-        backup: true
-        mode: 0755
+        - name: Compose deps
+          ansible.builtin.yum:
+            name:
+              - python2
+              - python36
 
-    - name: Ensure docker-compose version is detected
-      ansible.builtin.shell: /usr/local/bin/docker-compose --version
-      register: dockercompose_version
-      changed_when: false
-      check_mode: false
+        # https://docs.docker.com/compose/install/#alternative-install-options
+        - name: Ensure up2date downloaded version docker-compose is present
+          ansible.builtin.get_url:
+            url: https://github.com/docker/compose/releases/download/v2.12.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+            dest: /usr/local/bin/docker-compose
+            backup: true
+            mode: 0755
 
-    - name: Ensure docker-compose versoin is shown
-      ansible.builtin.debug:
-        msg: "{{ dockercompose_version.stdout.split('\n') }}"
+        - name: Ensure docker-compose version is detected
+          ansible.builtin.shell: /usr/local/bin/docker-compose --version
+          register: dockercompose_version
+          changed_when: false
+          check_mode: false
+
+        - name: Ensure docker-compose version is shown
+          ansible.builtin.debug:
+            msg: "{{ dockercompose_version.stdout.split('\n') }}"
 
     #
     # continue
