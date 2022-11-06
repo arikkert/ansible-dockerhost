@@ -1,3 +1,4 @@
 # from galaxy
+- src: arikkert.nrpe
 - src: arikkert.nrpe_check_docker
 - src: arikkert.postfix_nullclient
