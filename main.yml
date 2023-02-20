@@ -86,7 +86,7 @@
             url: https://github.com/docker/compose/releases/download/v2.14.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
             dest: /usr/local/bin/docker-compose
             backup: true
-            mode: 0755
+            mode: '0755'
 
         - name: Ensure docker-compose version is detected
           ansible.builtin.shell: /usr/local/bin/docker-compose --version
@@ -106,7 +106,7 @@
       ansible.builtin.file:
         path: /home/docker/.ssh
         state: directory
-        mode: 0700
+        mode: '0700'
         owner: docker
         group: docker
 
@@ -124,7 +124,7 @@
       ansible.builtin.file:
         path: /home/docker/{{ item }}
         state: directory
-        mode: 0755
+        mode: '0755'
       loop:
         - docker
         - docker_compose
@@ -163,7 +163,7 @@
       ansible.builtin.file:
         path: "{{ mp }}"
         state: directory
-        mode: 0755
+        mode: '0755'
 
     - name: Mount
       ansible.posix.mount:
@@ -217,12 +217,12 @@
       ansible.builtin.copy:
         src: mgitstatus
         dest: /usr/local/bin/
-        mode: 0755
+        mode: '0755'
 
     - name: Ensure mgitstatus manpage is installed
       ansible.builtin.copy:
         src: mgitstatus.1.gz
         dest: /usr/share/man/man1/
-        mode: 0644
+        mode: '0644'
 
 ...
