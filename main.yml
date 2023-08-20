@@ -11,15 +11,8 @@
     lv: data
     mp: "/container-data"  # MountPoint
     repo: docker-ce
-  roles:
-    - role: arikkert.nrpe_check_docker
-      when: containers is defined
-    - role: arikkert.postfix_nullclient
 
-  # First (pre) configure the hosts
-  # After that use roles to add special features
-  pre_tasks:
-
+  tasks:
     - name: Ensure target OS is supported
       ansible.builtin.fail:
         msg: "Playbook suitable/tested for CentOS {{ centos_version }}"
@@ -54,14 +47,9 @@
         state: started
         enabled: true
 
-    - name: Ensure user docker is installed
-      ansible.builtin.user:
-        name: docker
-        groups: docker
-        append: true
-
     #
-    # docker-compose
+    # docker-compose & docker compose plugin
+    # Not really needed to install them both
     #
 
     - name: Docker-compose
@@ -69,12 +57,12 @@
       block:
 
       # not the old system docker-compose from redhat repo
-        - name: Compose deps
+        - name: Compose deps - remove docker-compose
           ansible.builtin.yum:
             name: docker-compose
             state: absent
 
-        - name: Compose deps
+        - name: Compose deps - pythons (not sure if still needed)
           ansible.builtin.yum:
             name:
               - python2
@@ -83,7 +71,7 @@
         # https://docs.docker.com/compose/install/#alternative-install-options
         - name: Ensure up2date downloaded version docker-compose is present
           ansible.builtin.get_url:
-            url: https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+            url: https://github.com/docker/compose/releases/download/v2.20.3/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
             dest: /usr/local/bin/docker-compose
             backup: true
             mode: '0755'
@@ -98,42 +86,40 @@
           ansible.builtin.debug:
             msg: "{{ dockercompose_version.stdout.split('\n') }}"
 
+    - name: Docker compose as docker plugin
+      tags: docker compose
+      block:
+
+        - name: Install docker compose plugin
+          ansible.builtin.yum:
+            name: docker-compose-plugin
+            state: present
+
+        - name: Ensure docker compose version is detected
+          ansible.builtin.shell: docker compose version
+          register: dockercompose_version
+          changed_when: false
+          check_mode: false
+
+        - name: Ensure docker compose version is shown
+          ansible.builtin.debug:
+            msg: "{{ dockercompose_version.stdout.split('\n') }}"
+
     #
     # continue
     #
 
-    - name: Ensure .ssh dir exists
-      ansible.builtin.file:
-        path: /home/docker/.ssh
-        state: directory
-        mode: '0700'
-        owner: docker
-        group: docker
-
-    - name: Ensure key pair is created
-      become: true
-      become_user: docker
-      community.crypto.openssh_keypair:
-        path: "~/.ssh/id_rsa"
-        owner: docker
-        group: docker
-
-    - name: Ensure dirs exist
-      become: true
-      become_user: docker
-      ansible.builtin.file:
-        path: /home/docker/{{ item }}
-        state: directory
-        mode: '0755'
-      loop:
-        - docker
-        - docker_compose
+    - name: Ensure user docker is installed
+      ansible.builtin.user:
+        name: docker
+        groups: docker
+        append: true
 
     - name: Ensure sudo is installed
       ansible.builtin.package:
         name: sudo
 
-    - name: Ensure user docker can have elevated privileges
+    - name: Ensure user docker can elevate privileges
       ansible.builtin.copy:
         src: "{{ item }}"
         dest: /etc/sudoers.d/
@@ -173,56 +159,11 @@
         state: mounted
 
     #
-    # git
+    # helpers
     #
-
-    - name: Ensure git is installed
-      ansible.builtin.yum:
-        name: git
 
     - name: TZ {{ tz }}
       community.general.timezone:
         name: "{{ tz }}"
-
-    #
-    # helpers
-    #
-
-    - name: Ensure yamllint is installed
-      ansible.builtin.yum:
-        name: "{{ item }}"
-      loop:
-        - yamllint
-
-    - name: Ensure hadolint is installed
-      ansible.builtin.yum:
-        name: "{{ item }}"
-      loop:
-        - https://harbottle.gitlab.io/harbottle-main/7/x86_64/harbottle-main-release.rpm
-        - hadolint
-
-    - name: Ensure version is detected
-      ansible.builtin.shell: hadolint --version
-      register: hadolint_version
-      changed_when: false
-      check_mode: false
-
-    - name: Ensure hadolint version is shown
-      ansible.builtin.debug:
-        msg: "{{ hadolint_version.stdout.split('\n') }}"
-
-    # sources op git clone https://github.com/fboender/multi-git-status.git
-    # daarna patchen voor rhel7 ouwe git en locks
-    - name: Ensure mgitstatus is installed
-      ansible.builtin.copy:
-        src: mgitstatus
-        dest: /usr/local/bin/
-        mode: '0755'
-
-    - name: Ensure mgitstatus manpage is installed
-      ansible.builtin.copy:
-        src: mgitstatus.1.gz
-        dest: /usr/share/man/man1/
-        mode: '0644'
 
 ...
