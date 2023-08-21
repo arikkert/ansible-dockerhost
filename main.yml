@@ -1,5 +1,5 @@
 #
-#
+# docker is group of target hosts, e.g. docker01 and docker02
 ---
 - name: Provision dockerhosts, servers that host docker containers
   hosts: docker
@@ -13,6 +13,7 @@
     repo: docker-ce
 
   tasks:
+
     - name: Ensure target OS is supported
       ansible.builtin.fail:
         msg: "Playbook suitable/tested for CentOS {{ centos_version }}"
@@ -151,7 +152,7 @@
         state: directory
         mode: '0755'
 
-    - name: Mount
+    - name: Ensure MP is mounted
       ansible.posix.mount:
         path: "{{ mp }}"
         src: /dev/mapper/{{ vg }}-{{ lv }}
