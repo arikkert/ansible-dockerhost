@@ -72,7 +72,7 @@
         # https://docs.docker.com/compose/install/#alternative-install-options
         - name: Ensure up2date downloaded version docker-compose is present
           ansible.builtin.get_url:
-            url: https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+            url: https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
             dest: /usr/local/bin/docker-compose
             backup: true
             mode: '0755'
