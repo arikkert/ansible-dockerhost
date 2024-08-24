@@ -1,10 +1,10 @@
-#
+# https://docs.docker.com/engine/install/centos/
 # docker is group of target hosts, e.g. docker01 and docker02
 ---
 - name: Provision dockerhosts, servers that host docker containers
   hosts: docker
   vars:
-    centos_version: "7"
+    centos_version: "9"
     tz: Europe/Amsterdam
     pv: sdb
     vg: vg01
@@ -22,6 +22,19 @@
     #
     # docker itself
     #
+
+    - name: Ensure old versions are not present
+      ansible.builtin.yum:
+        name:
+          - docker
+          - docker-client
+          - docker-client-latest
+          - docker-common
+          - docker-latest
+          - docker-latest-logrorate
+          - docker-logrorate
+          - docker-engine
+        state: absent
 
     - name: Ensure docker-ce repo is installed
       ansible.builtin.shell: yum-config-manager --add-repo=https://download.docker.com/linux/centos/{{ repo }}.repo
@@ -63,16 +76,10 @@
             name: docker-compose
             state: absent
 
-        - name: Compose deps - pythons (not sure if still needed)
-          ansible.builtin.yum:
-            name:
-              - python2
-              - python36
-
         # https://docs.docker.com/compose/install/#alternative-install-options
         - name: Ensure up2date downloaded version docker-compose is present
           ansible.builtin.get_url:
-            url: https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+            url: https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
             dest: /usr/local/bin/docker-compose
             backup: true
             mode: '0755'
@@ -128,6 +135,11 @@
         validate: visudo -cf %s
       loop:
         - 10_docker
+
+    - name: VG deps
+      ansible.builtin.yum:
+        name:
+          - lvm2
 
     - name: Ensure VG exists
       community.general.lvg:

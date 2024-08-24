@@ -1,8 +1,10 @@
 playbook documentation
 ======================
 
-installs and configures docker on target host with CentOS 7.  
-It will configure the target host as docker host (controlling containers) and reserves a separate partition for the container data
+installs and configures docker on target host with CentOS 9.
+According to https://docs.docker.com/engine/install/centos/.
+It will configure the target host as docker host (controlling containers) and reserves a separate partition for the container data.
+Tested on https://app.vagrantup.com/bento/boxes/centos-stream-9 box.
 
 Info
 ----
@@ -18,7 +20,7 @@ Requirements
 ------------
 
 Deploy host has *make*, *ansible*
-Target host has CentOS 7 installed.  
+Target host has CentOS 9 installed.
 Requires root access to target host.   
 Target host has an extra disk */dev/sdb* of at least 40 GB in size for future container data.  
 
