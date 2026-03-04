@@ -5,9 +5,9 @@
   hosts: docker
   vars:
     _ansible_distribution: "CentOS"
-    _ansible_distribution_major_version: 9
+    _ansible_distribution_major_version: 10
     tz: Europe/Amsterdam
-    pv: sdb
+    pv: vdb
     vg: vg01
     lv: data
     mp: "/container-data"  # MountPoint
