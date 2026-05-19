@@ -29,7 +29,7 @@
     #
 
     - name: Ensure old versions are not present
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name:
           - docker
           - docker-client
@@ -47,7 +47,7 @@
         creates: /etc/yum.repos.d/{{ repo }}.repo
 
     - name: Ensure this repo is installed {{ repo }}
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: "{{ repo }}"
 
     - name: Ensure docker version is detected
@@ -77,7 +77,7 @@
 
       # not the old system docker-compose from redhat repo
         - name: Compose deps - remove docker-compose
-          ansible.builtin.yum:
+          ansible.builtin.dnf:
             name: docker-compose
             state: absent
 
@@ -104,7 +104,7 @@
       block:
 
         - name: Install docker compose plugin
-          ansible.builtin.yum:
+          ansible.builtin.dnf:
             name: docker-compose-plugin
             state: present
 
@@ -142,7 +142,7 @@
         - 10_docker
 
     - name: VG deps
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name:
           - lvm2
 
