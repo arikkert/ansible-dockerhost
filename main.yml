@@ -18,9 +18,9 @@
     - name: Ensure OS is supported
       ansible.builtin.assert:
         that:
-          - ansible_distribution == _ansible_distribution
-          - ansible_distribution_major_version | int == _ansible_distribution_major_version | int
-        fail_msg: "Playbook only suitable for distro {{ ansible_distribution }} major version {{ ansible_distribution_major_version }}"
+          - ansible_facts['distribution'] == _ansible_distribution
+          - ansible_facts['distribution_major_version'] | int == _ansible_distribution_major_version | int
+        fail_msg: "Playbook only suitable for distro {{ ansible_facts['distribution'] }} major version {{ ansible_facts['distribution_major_version'] }}"
         success_msg: "Yes, OS is fine"
 
 
@@ -84,7 +84,7 @@
         # https://docs.docker.com/compose/install/#alternative-install-options
         - name: Ensure up2date downloaded version docker-compose is present
           ansible.builtin.get_url:
-            url: https://github.com/docker/compose/releases/download/v2.40.0/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+            url: https://github.com/docker/compose/releases/download/v2.40.0/docker-compose-{{ ansible_facts['system'] }}-{{ ansible_facts['machine'] }}
             dest: /usr/local/bin/docker-compose
             backup: true
             mode: '0755'
